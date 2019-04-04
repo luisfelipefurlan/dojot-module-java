@@ -20,6 +20,7 @@ public class Config {
     private String mKafkaDefaultManager;
     private Integer mKafkaDefaultSessionTimeout;
     private String mKafkaDefaultGroupId;
+    private Long mKafkaDefaultConsumerPollTime;
 
     private Config() {
         if (System.getenv("DEVM_ADDRESS") != null) {
@@ -55,6 +56,13 @@ public class Config {
             // this.mKafkaAddress = "172.20.0.16:9092";
             this.mKafkaAddress = "kafka:9092";
         }
+
+        if (System.getenv("KAFKA_CONSUMER_POLL_TIME") != null) {
+            this.mKafkaDefaultConsumerPollTime = new Long(System.getenv("KAFKA_CONSUMER_POLL_TIME"));
+        } else {
+            this.mKafkaDefaultConsumerPollTime = new Long(100);
+        }
+
 
         this.mInternalDefaultTenant = "internal";
 
@@ -134,5 +142,9 @@ public class Config {
 
     public String getKafkaDefaultGroupId() {
         return this.mKafkaDefaultGroupId;
+    }
+
+    public long getKafkaDefaultConsumerPollTime() {
+        return this.mKafkaDefaultConsumerPollTime.longValue();
     }
 }

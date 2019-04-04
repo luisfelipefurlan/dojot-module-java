@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Sample {
     public static void main (String[] args){
-        Messenger msg = new Messenger();
+        Messenger msg = new Messenger(100);
         msg.init();
 
         msg.createChannel("device-data", "rw", false);
