@@ -52,10 +52,10 @@ public class TopicManager {
             JSONObject jsonResponse = request.getBody().getObject();
             return jsonResponse.getString("topic");
         } catch(UnirestException exception) {
-            System.out.println("ASD: " + exception);
+            System.out.println("Failed to request topic: " + exception.getMessage());
             return "";
-        } catch (JSONException exception){
-            System.out.println("BBB");
+        } catch (JSONException exception) {
+            System.out.println("Failed to request topic: " + exception.getMessage());
             return "";
         }
     }
