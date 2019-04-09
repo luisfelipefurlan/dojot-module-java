@@ -32,9 +32,11 @@ public class Messenger {
     private Map<String, Map<String,String>> mTopics;
     private Map<String, Map<String,String>> mProducerTopics;
     private Consumer mConsumer;
+    private Thread mConsumerThread;
     private Producer mProducer;
 
-    public Messenger(){
+    public Messenger(long pollTime) {
+        this.mConsumerThread = null;
         mTenants = new ArrayList<>();
         mEventCallbacks = new HashMap<>();
         mSubjects = new HashMap<>();
@@ -43,29 +45,42 @@ public class Messenger {
         mProducerTopics = new HashMap<>();
 
         mProducer = new Producer();
-        mConsumer = new Consumer( (ten,msg) -> { this.processKafkaMessages(ten,msg);  return 0;});
+        mConsumer = new Consumer(pollTime, (tenant, msg) -> {
+            this.processKafkaMessages(tenant, msg); 
+            return 0;
+        });
 
-        };
+    };
 
     /**
      *  Initializes the messenger and sets with all tenants
      *
      */
-    public void init(){
-        this.createChannel(Config.getInstance().getTenancyManagerDefaultSubject(),"rw",true);
-        this.on(Config.getInstance().getTenancyManagerDefaultSubject(), "message", (ten, msg) -> {this.processNewTenant(ten,msg); return null;});
-        ArrayList<String> retTenants = Auth.getInstance().getTenants();
-        if(retTenants.isEmpty()){
+    public void init() {
+
+        if ( (this.mConsumerThread == null) || (!this.mConsumerThread.isAlive()) ) {
+            System.out.println("Starting Consumer thread...");
+            this.mConsumerThread = new Thread(mConsumer);
+            this.mConsumerThread.start();
+            System.out.println("... started consumer thread successfully");
+        }
+
+        this.createChannel(Config.getInstance().getTenancyManagerDefaultSubject(), "rw", true);
+        this.on(Config.getInstance().getTenancyManagerDefaultSubject(), "message",
+            (tenant, msg) -> {
+                this.processNewTenant(tenant, msg);
+                return null;
+            }
+        );
+        ArrayList<String> currTenants = Auth.getInstance().getTenants();
+        if(currTenants.isEmpty()) {
             System.out.println("Cannot initialize messenger, as the list of tenants could not be retrieved. Bailing out");
             throw new Error("Could not retrieve tenants");
         }
-        for (String ten : retTenants){
-            this.mTenants.add(ten);
-        }
         System.out.println("Got list of tenants");
-        for(String ten : retTenants) {
-            System.out.println("Bootstraping tenant: " + ten);
-            String newTenantMsg = "{\"tenant\": " + ten + "}";
+        for(String tenant : currTenants) {
+            System.out.println("Bootstraping tenant: " + tenant);
+            String newTenantMsg = "{\"tenant\": " + tenant + "}";
             this.processNewTenant(Config.getInstance().getInternalTenant(), newTenantMsg);
         }
     }
@@ -77,7 +92,7 @@ public class Messenger {
      * @param tenant The tenant associated to the message (NOT NEW TENANT).
      * @param msg The message just received with the new tenant.
      */
-    private void processNewTenant(String tenant, String msg){
+    private void processNewTenant(String tenant, String msg) {
         System.out.println("Received message in tenancy subject");
         System.out.println("Message is: " + msg);
         System.out.println("Tenant is: " + tenant);
@@ -85,12 +100,12 @@ public class Messenger {
 
         JSONObject jsonObj = new JSONObject(msg);
         System.out.println(jsonObj.toString());
-        if(jsonObj.isNull("tenant")){
+        if (jsonObj.isNull("tenant")) {
             System.out.println("Received message is invalid");
             return;
         }
         String newTenant = jsonObj.get("tenant").toString();
-        if(this.mTenants.contains(newTenant)){
+        if (this.mTenants.contains(newTenant)) {
             System.out.println("Tenant already exists...");
             return;
         }
@@ -134,17 +149,17 @@ public class Messenger {
      * @param isGlobal flag indicating whether this channel should be
      * associated to a service or be global.
      */
-    private void bootstrapTenants(String subject, String tenant, String mode, boolean isGlobal){
+    private void bootstrapTenants(String subject, String tenant, String mode, boolean isGlobal) {
         System.out.println("Bootstraping tenant: " + tenant + "for subject: " + subject);
         System.out.println("Global: " + isGlobal + "and mode: " + mode);
 
         try {
             String retTopic = TopicManager.getInstance().getTopic(subject, tenant, isGlobal);
-            if (retTopic.isEmpty()){
+            if (retTopic.isEmpty()) {
                 System.out.println("Could not retrieve topic...");
                 return;
             }
-            if (this.mTopics.containsKey(retTopic)){
+            if (this.mTopics.containsKey(retTopic)) {
                 System.out.println("Already had a topic for " + subject + "@" + tenant);
                 return;
             }
@@ -157,25 +172,7 @@ public class Messenger {
 
             if (mode.contains("r")){
                 System.out.println("Telling consumer to subscribe to a new topic...");
-                try {
-                    this.mConsumer.subscribe(retTopic);
-                    this.mConsumer.setShouldStop(true);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-                if(this.mTopics.size() == 1) {
-                    System.out.println("Starting Consumer thread...");
-                    System.out.flush();
-                    try {
-                        Thread thread = new Thread(mConsumer);
-                        thread.start();
-                        System.out.println("... started consumer thread successfully");
-                    } catch (Exception error) {
-                        System.out.println("Could not start consumer");
-                    }
-                } else {
-                    System.out.println("Consumer thread is already started");
-                }
+                this.mConsumer.addToSubscriberList(retTopic);
             }
 
             if (mode.contains("w")) {
@@ -205,30 +202,28 @@ public class Messenger {
         System.out.println("Creating channel for: " + subject);
 
         List<String> associatedTenants = new ArrayList<>();
-//        List<String> associatedTenants = new ArrayList<>(this.mTenants);
-        for(String ten : this.mTenants){
-            associatedTenants.add(ten);
-        }
 
         if (isGlobal) {
-            associatedTenants.clear();
             associatedTenants.add(Config.getInstance().getInternalTenant());
-            this.mGlobalSubjects.put(subject,new HashMap());
+            this.mGlobalSubjects.put(subject, new HashMap());
             this.mGlobalSubjects.get(subject).put("mode", mode);
         } else {
-
+            for(String tenant : this.mTenants) {
+                associatedTenants.add(tenant);
+            }
+            
             System.out.println(this.mTenants);
 
             System.out.println(associatedTenants);
-            this.mSubjects.put(subject,new HashMap());
+            this.mSubjects.put(subject, new HashMap());
             this.mSubjects.get(subject).put("mode", mode);
         }
-        System.out.println("and tenants: ");
-        for (String ten : associatedTenants){
-            System.out.println(ten);
-            this.bootstrapTenants(subject, ten, mode, isGlobal);
-        }
 
+        System.out.println("and tenants: ");
+        for (String tenant : associatedTenants) {
+            System.out.println(tenant);
+            this.bootstrapTenants(subject, tenant, mode, isGlobal);
+        }
     }
 
     /**
@@ -321,7 +316,6 @@ public class Messenger {
                 extraArg = "?page_num=" + pageNum.toString();
             }
             url = Config.getInstance().getDeviceManagerAddress() + "/device" + extraArg;
-            System.out.println("URL:::: " + url);
             hasNext = false;
             try {
                 HttpResponse<JsonNode> response = Unirest.get(url)
