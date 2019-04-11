@@ -19,12 +19,6 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
-class InitializationException extends Exception{
-   public InitializationException(String msg) {
-       super(msg);
-   }
-}
-
 /**
  * Class responsible for sending and receiving messages through Kafka using
  * dojot subjects and tenants.
