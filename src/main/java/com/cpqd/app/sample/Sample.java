@@ -8,7 +8,14 @@ import java.util.concurrent.TimeUnit;
 public class Sample {
     public static void main (String[] args){
         Messenger msg = new Messenger(100);
-        msg.init();
+        try {
+            msg.init();
+        }
+        catch (Exception ex) {
+            System.out.println("Failed to initialize the messenger (Exception: " + ex + ").");
+            System.exit(1);
+        }
+
 
         msg.createChannel("device-data", "rw", false);
         msg.on("device-data", "message", (a,b) -> {System.out.println(a + b); return null;});
@@ -28,7 +35,7 @@ public class Sample {
         } catch (InterruptedException e){
             System.out.println(e);
         }
-        
+
         //Testing if tenant created during the lib is working is receiving messages
         msg.publish("device-data", "math6", "{\"bbb\": \"bbb\"}");
     }

@@ -46,7 +46,7 @@ public class Messenger {
 
         mProducer = new Producer();
         mConsumer = new Consumer(pollTime, (tenant, msg) -> {
-            this.processKafkaMessages(tenant, msg); 
+            this.processKafkaMessages(tenant, msg);
             return 0;
         });
 
@@ -56,7 +56,7 @@ public class Messenger {
      *  Initializes the messenger and sets with all tenants
      *
      */
-    public void init() {
+    public void init() throws InitializationException{
 
         if ( (this.mConsumerThread == null) || (!this.mConsumerThread.isAlive()) ) {
             System.out.println("Starting Consumer thread...");
@@ -74,8 +74,8 @@ public class Messenger {
         );
         ArrayList<String> currTenants = Auth.getInstance().getTenants();
         if(currTenants.isEmpty()) {
-            System.out.println("Cannot initialize messenger, as the list of tenants could not be retrieved. Bailing out");
-            throw new Error("Could not retrieve tenants");
+            System.out.println("Cannot initialize messenger as the list of tenants could not be retrieved.");
+            throw new InitializationException("Could not retrieve tenants");
         }
         System.out.println("Got list of tenants");
         for(String tenant : currTenants) {
@@ -211,7 +211,7 @@ public class Messenger {
             for(String tenant : this.mTenants) {
                 associatedTenants.add(tenant);
             }
-            
+
             System.out.println(this.mTenants);
 
             System.out.println(associatedTenants);
