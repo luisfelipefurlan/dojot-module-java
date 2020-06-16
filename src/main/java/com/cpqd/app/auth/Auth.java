@@ -51,7 +51,7 @@ public class Auth {
 	 * 
 	 * @throws UnirestException
 	 */
-	public String getKeycloakAccessToken() throws UnirestException {
+	private String getKeycloakAccessToken() throws UnirestException {
 
 		Config config = Config.getInstance();
 
