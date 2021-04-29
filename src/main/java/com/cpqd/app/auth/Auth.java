@@ -45,7 +45,7 @@ public class Auth {
 
         return response.toString();
     }
-    
+
 	/**
 	 * Get an access token from keycloak
 	 * 
@@ -81,6 +81,8 @@ public class Auth {
 			for (int i = 0; i < jsonArrayResponse.length(); i++) {
 				resTenants.add((String) (jsonArrayResponse.getJSONObject(i)).get("realm"));
 			}
+
+			resTenants.remove(Config.getInstance().getKeycloakIgnoreRealm());
 
 		} catch (UnirestException exception) {
 			return resTenants;

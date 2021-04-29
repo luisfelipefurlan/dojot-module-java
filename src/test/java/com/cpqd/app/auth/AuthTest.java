@@ -60,7 +60,6 @@ public class AuthTest {
 		tokenJsonNode.getObject().put("access_token", "my_token");
 
 		JsonNode tenantsJsonNode = new JsonNode("[]");
-		tenantsJsonNode.getArray().put(new JSONObject().put("realm", "master").put("some_field", "some_value"));
 		tenantsJsonNode.getArray().put(new JSONObject().put("realm", "my_realm").put("some_field", "some_value"));
 
 		GetRequest getRequestMock = mock(GetRequest.class);
