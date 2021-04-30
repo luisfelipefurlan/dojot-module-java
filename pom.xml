@@ -6,7 +6,7 @@
 
   <groupId>com.github.dojot</groupId>
   <artifactId>dojot-module-java</artifactId>
-  <version>1.1.0</version>
+  <version>2.0.0</version>
 
   <name>dojot module java</name>
   <url>https://github.com/dojot/dojot-module-java</url>
@@ -94,6 +94,18 @@
       <artifactId>caffeine</artifactId>
       <version>2.6.2</version>
     </dependency>
+    <dependency>
+	  <groupId>org.powermock</groupId>
+	  <artifactId>powermock-module-junit4</artifactId>
+	  <version>1.6.4</version>
+	  <scope>test</scope>
+	  </dependency>
+	<dependency>
+	  <groupId>org.powermock</groupId>
+	  <artifactId>powermock-api-mockito</artifactId>
+	  <version>1.6.4</version>
+	  <scope>test</scope>
+	</dependency>
   </dependencies>
 
   <build>
