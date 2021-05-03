@@ -8,7 +8,6 @@ public class Config {
 
     private String mDeviceManagerAddress;
     private String mImageManagerAddress;
-    private String mAuthAddress;
     private String mDataBrokerAddress;
     private String mKafkaAddress;
     private String mInternalDefaultTenant;
@@ -21,6 +20,12 @@ public class Config {
     private Integer mKafkaDefaultSessionTimeout;
     private String mKafkaDefaultGroupId;
     private Long mKafkaDefaultConsumerPollTime;
+    private String keycloakBasePath;
+    private String keycloakIgnoreRealm;
+    private String keycloakUsername;
+    private String keycloakPassword;
+    private String keycloakClientId;
+    private String keycloakGrantType;
 
     private Config() {
         if (System.getenv("DEVM_ADDRESS") != null) {
@@ -35,11 +40,6 @@ public class Config {
             this.mImageManagerAddress = "image-manager:5000";
         }
 
-        if (System.getenv("AUTH_ADDRESS") != null) {
-            this.mAuthAddress = System.getenv("AUTH_ADDRESS");
-        } else {
-            this.mAuthAddress = "http://auth:5000";
-        }
 
         if (System.getenv("DATA_BROKER_ADDRESS") != null) {
             this.mDataBrokerAddress = System.getenv("DATA_BROKER_ADDRESS");
@@ -59,6 +59,42 @@ public class Config {
             this.mKafkaDefaultConsumerPollTime = new Long(100);
         }
 
+        if (System.getenv("KEYCLOAK_BASE_PATH") != null) {
+        	this.keycloakBasePath = System.getenv("KEYCLOAK_BASE_PATH");
+        }else {
+        	this.keycloakBasePath = "http://apigw:8000/auth";
+        }
+
+        if (System.getenv("KEYCLOAK_IGNORE_REALM") != null) {
+        	this.keycloakIgnoreRealm = System.getenv("KEYCLOAK_IGNORE_REALM");
+        }else {
+        	this.keycloakIgnoreRealm = "master";
+        }
+
+        if (System.getenv("KEYCLOAK_USERNAME") != null) {
+        	this.keycloakUsername = System.getenv("KEYCLOAK_USERNAME");
+        }else {
+        	this.keycloakUsername = "admin";
+        }
+
+        if (System.getenv("KEYCLOAK_PASSWORD") != null) {
+        	this.keycloakPassword = System.getenv("KEYCLOAK_PASSWORD");
+        }else {
+        	this.keycloakPassword = "admin";
+        }
+
+        if (System.getenv("KEYCLOAK_CLIENT_ID") != null) {
+        	this.keycloakClientId = System.getenv("KEYCLOAK_CLIENT_ID");
+        }else {
+        	this.keycloakClientId = "admin-cli";
+        }
+
+        if (System.getenv("KEYCLOAK_GRANT_TYPE") != null) {
+        	this.keycloakGrantType = System.getenv("KEYCLOAK_GRANT_TYPE");
+        }else {
+        	this.keycloakGrantType = "password";
+        }
+
 
         this.mInternalDefaultTenant = "internal";
 
@@ -66,7 +102,6 @@ public class Config {
         this.mDeviceManagerDefaultManager = "http://" + this.mDeviceManagerAddress;
 
         this.mTenancyManagerDefaultSubject = "dojot.tenancy";
-        this.mTenancyManagerDefaultManager = "http://" + this.mAuthAddress;
 
         this.mIotagentDefaultSubject = "device-data";
 
@@ -94,10 +129,6 @@ public class Config {
 
     public String getImageManagerAddress() {
         return this.mImageManagerAddress;
-    }
-
-    public String getAuthAddress() {
-        return this.mAuthAddress;
     }
 
     public String getDataBrokerAddress() {
@@ -143,4 +174,52 @@ public class Config {
     public long getKafkaDefaultConsumerPollTime() {
         return this.mKafkaDefaultConsumerPollTime.longValue();
     }
+
+    public String getKeycloakBasePath() {
+		return keycloakBasePath;
+	}
+
+	public void setKeycloakBasePath(String keycloakBasePath) {
+		this.keycloakBasePath = keycloakBasePath;
+	}
+
+    public String getKeycloakIgnoreRealm() {
+		return keycloakIgnoreRealm;
+	}
+
+	public void setKeycloakIgnoreRealm(String keycloakIgnoreRealm) {
+		this.keycloakIgnoreRealm = keycloakIgnoreRealm;
+	}
+
+	public String getKeycloakUsername() {
+		return keycloakUsername;
+	}
+
+	public void setKeycloakUsername(String keycloakUsername) {
+		this.keycloakUsername = keycloakUsername;
+	}
+
+	public String getKeycloakPassword() {
+		return keycloakPassword;
+	}
+
+	public void setKeycloakPassword(String keycloakPassword) {
+		this.keycloakPassword = keycloakPassword;
+	}
+
+	public String getKeycloakClientId() {
+		return keycloakClientId;
+	}
+
+	public void setKeycloakClientId(String keycloakClientId) {
+		this.keycloakClientId = keycloakClientId;
+	}
+
+	public String getKeycloakGrantType() {
+		return keycloakGrantType;
+	}
+
+	public void setKeycloakGrantType(String keycloakGrantType) {
+		this.keycloakGrantType = keycloakGrantType;
+	}
 }
