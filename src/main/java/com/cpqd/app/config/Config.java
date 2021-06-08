@@ -62,7 +62,7 @@ public class Config {
         if (System.getenv("KEYCLOAK_BASE_PATH") != null) {
         	this.keycloakBasePath = System.getenv("KEYCLOAK_BASE_PATH");
         }else {
-        	this.keycloakBasePath = "http://apigw:8000/auth";
+        	this.keycloakBasePath = "http://keycloak:8080/auth";
         }
 
         if (System.getenv("KEYCLOAK_IGNORE_REALM") != null) {
