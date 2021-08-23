@@ -6,7 +6,7 @@
 
   <groupId>com.github.dojot</groupId>
   <artifactId>dojot-module-java</artifactId>
-  <version>2.0.1</version>
+  <version>1.1.0</version>
 
   <name>dojot module java</name>
   <url>https://github.com/dojot/dojot-module-java</url>

@@ -46,50 +46,27 @@ public class Auth {
         return response.toString();
     }
 
-	/**
-	 * Get an access token from keycloak
-	 * 
-	 * @throws UnirestException
-	 */
-	private String getKeycloakAccessToken() throws UnirestException {
-
-		Config config = Config.getInstance();
-
-		HttpResponse<JsonNode> response = Unirest
-				.post(config.getKeycloakBasePath() + "/realms/master/protocol/openid-connect/token")
-				.field("username", config.getKeycloakUsername()).field("password", config.getKeycloakPassword())
-				.field("client_id", config.getKeycloakClientId()).field("grant_type", config.getKeycloakGrantType())
-				.asJson();
-		return (String) response.getBody().getObject().get("access_token");
-
-	}
-
     /**
-     * Gets all tenants that are registered on Keycloak.
+     * Gets all tenants that are registered on Auth service.
      *
      * @return List of tenants.
      */
-	public ArrayList<String> getTenants() {
-		StringBuffer url = new StringBuffer(Config.getInstance().getKeycloakBasePath());
-		url.append("/admin/realms");
-		ArrayList<String> resTenants = new ArrayList<>();
-		try {
-			HttpResponse<JsonNode> request = Unirest.get(url.toString())
-					.header("authorization", "Bearer " + getKeycloakAccessToken()).asJson();
-			JSONArray jsonArrayResponse = request.getBody().getArray();
-
-			for (int i = 0; i < jsonArrayResponse.length(); i++) {
-				resTenants.add((String) (jsonArrayResponse.getJSONObject(i)).get("realm"));
-			}
-
-			resTenants.remove(Config.getInstance().getKeycloakIgnoreRealm());
-
-		} catch (UnirestException exception) {
-			return resTenants;
-		} catch (JSONException exception) {
-			return resTenants;
-		}
-		System.out.println("resTenants:::: " + resTenants);
-		return resTenants;
-	}
+    public ArrayList<String> getTenants(){
+        StringBuffer url = new StringBuffer(Config.getInstance().getAuthAddress());
+        url.append("/admin/tenants");
+        ArrayList<String> resTenants = new ArrayList<>();
+        try {
+            HttpResponse<JsonNode> request = Unirest.get(url.toString()).header("authorization","Bearer " + Auth.getInstance().getToken(Config.getInstance().getInternalTenant())).asJson();
+            JSONArray jsonArrayResponse = request.getBody().getObject().getJSONArray("tenants");
+            for(int i = 0;i < jsonArrayResponse.length();i++) {
+                resTenants.add(jsonArrayResponse.get(i).toString());
+            }
+        } catch(UnirestException exception) {
+                return resTenants;
+        } catch (JSONException exception){
+                return resTenants;
+        }
+        System.out.println("resTenants:::: " + resTenants);
+        return resTenants;
+    }
 }
